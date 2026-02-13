@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>게시글</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #f7f8fa;
+            padding: 40px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        textarea {
+            min-height: 150px;
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        #create, #modify, #register {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #create:hover, #modify:hover, #register:hover {
+            background-color: #45a049;
+        }
+
+        #cancel {
+            background-color: #888;
+            color: white;
+        }
+
+        #cancel:hover {
+            background-color: #666;
+        }
+
+        #delete {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #delete:hover {
+            background-color: #c0392b;
+        }
+
+        /* 좋아요 영역 오른쪽 정렬 */
+        .like-area {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            color: #e74c3c;
+            margin-top: 20px;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        #like {
+            cursor: pointer;
+            font-size: 24px;
+            user-select: none;
+        }
+
+        /* 댓글 */
+        .comments-section {
+            margin-top: 40px;
+        }
+
+        .comments-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+
+        .comment-input-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #comment {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+
+        .register-btn-wrap {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #register {
+            margin-top: 0;
+        }
+
+        #comments {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            button {
+                width: 100%;
+                margin: 10px 0;
+            }
+
+            .button-group {
+                text-align: center;
+            }
+
+            .register-btn-wrap {
+                justify-content: center;
+            }
+        }
+
+        .comment {
+            background: #f1f1f1;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .comment-user {
+            font-weight: bold;
+            color: #333;
+            margin-top: 8px;
+            margin-bottom: 6px;
+        }
+
+        .comment-text {
+            color: #555;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .comment-delete {
+            font-size: 12px;
+            color: #888;
+            text-decoration: underline;
+            cursor: pointer;
+            margin: 0;
+            text-align: right;
+        }
+
+        .no-comments {
+            text-align: center;
+            color: #888;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>게시글</h1>
+        <div>
+            <label for="title">제목</label>
+            <input type="text" id="title">
+        </div>
+
+        <div>
+            <label for="summary">내용</label>
+            <div id="summary"></div>
+        </div>
+
+        <div class="button-group create">
+            <button id="create">저장</button>
+            <button id="cancel">취소</button>
+        </div>
+
+        <div class="button-group owner" style="display: none;">
+            <button id="modify">수정</button>
+            <button class="list">목록으로</button>
+            <button id="delete">삭제</button>
+        </div>
+
+        <div class="button-group visitor" style="display: none;">
+            <button class="list">목록으로</button>
+        </div>
+
+        <div class="detail" style="display: none;">
+            <div class="like-area">
+                <p id="like">♡</p>
+                <span id="like-count">0</span>
+            </div>
+        </div>
+
+        <div class="detail comments-section" style="display: none;">
+            <p class="comments-title">댓글</p>
+            <div class="comment-input-area">
+                <textarea id="comment" placeholder="댓글을 입력하세요"></textarea>
+                <div class="register-btn-wrap">
+                    <button id="register">등록</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail" id="comments"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script type="module" src="js/post.js"></script>
+</body>
+</html>
